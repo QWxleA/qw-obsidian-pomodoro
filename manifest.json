@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "qw-obsidian-pomodoro-timer",
+	"name": "Alex's Pomodoro Timer",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Simple Pomodoro timer with daily notes integration",
+	"author": "Your Name",
+	"authorUrl": "https://github.com/qwxlea",
 	"isDesktopOnly": false
 }
