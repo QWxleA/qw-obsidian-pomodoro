@@ -240,7 +240,7 @@ export default class PomodoroPlugin extends Plugin {
 		this.timerStatus = TimerStatus.RUNNING;
 		this.remainingTime = this.settings.pomodoroLength * 60;
 		this.updateStatusBar();
-		new Notice('Pomodoro started!');
+		new Notice('🍅 started!');
 		
 		// Start the interval
 		this.interval = window.setInterval(() => {
@@ -267,14 +267,16 @@ export default class PomodoroPlugin extends Plugin {
 	}
 	
 	stopTimer() {
+		let msg = 'No 🍅 timer running'
 		if (this.interval) {
 			clearInterval(this.interval);
 			this.interval = null;
+			msg = '🍅 timer stopped';
 		}
 		
 		this.timerStatus = TimerStatus.IDLE;
 		this.updateStatusBar();
-		new Notice('Timer stopped');
+		new Notice(msg);
 	}
 	
 	restartTimer() {
