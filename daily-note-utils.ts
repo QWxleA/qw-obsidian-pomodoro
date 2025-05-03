@@ -3,7 +3,13 @@ import { App, TFile, Notice } from 'obsidian';
 interface DailyNoteSettings {
     dailyNoteFolder: string;
     dailyNoteFormat: string;
-    pomodoroCounterName?: string;
+}
+
+interface DailyNotesOptions {
+    autorun?: boolean; // Open daily note on startup
+    folder?: string; // New file location
+    format?: string; // Date format
+    template?: string; // Template file location
 }
 
 /**
@@ -28,9 +34,10 @@ export async function getDailyNoteFile(
     today = workDate.format(dailyNoteFormat);
 
     // Use settings, unless core plugin is enabled 
-    const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
-    if (dailyNotesPlugin?.enabled) {
-        const dailySettings = dailyNotesPlugin.instance.options;
+    // https://forum.obsidian.md/t/how-do-i-access-other-plugins-settings/99194/5
+    const DailyNotesOptions = this.app.internalPlugins.getPluginById("daily-notes");
+    if (DailyNotesOptions?.enabled) {
+        const dailySettings = DailyNotesOptions.instance.options;
         dailyNotesFolder = dailySettings.folder;
         today = workDate.format(dailySettings.format);		
     } 
@@ -51,8 +58,6 @@ export async function getDailyNoteFile(
     // If frontmatterTemplate is provided, use it, otherwise create minimal frontmatter
     if (frontmatterTemplate) {
         initialContent = frontmatterTemplate;
-    } else if (settings.pomodoroCounterName) {
-        initialContent = `---\n${settings.pomodoroCounterName}: 0\n---\n\n`;
     } else {
         initialContent = '---\n---\n\n';
     }
