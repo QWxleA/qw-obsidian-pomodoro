@@ -6,6 +6,8 @@ interface PomodoroPluginSettings {
 	breakLength: number;
 	longBreakLength: number;
 	pomodoroCounterName: string;
+	dailyNoteFolder: string;
+	dailyNoteFormat: string;
 }
 
 // Default settings
@@ -13,7 +15,9 @@ const DEFAULT_SETTINGS: PomodoroPluginSettings = {
 	pomodoroLength: 25, // 25 minutes
 	breakLength: 5, // 5 minutes
 	longBreakLength: 15, // 15 minutes
-	pomodoroCounterName: 'pomodoros'
+	pomodoroCounterName: 'pomodoros',
+	dailyNoteFolder: '/Journal',
+	dailyNoteFormat: 'YYYY-MM-DD'
 }
 
 // Timer status enum
@@ -85,23 +89,22 @@ export default class PomodoroPlugin extends Plugin {
 	pomodoroCount: number = 0;
 	
 	// Get today's daily note file or create it if it doesn't exist
-	async getDailyNoteFile(): Promise<TFile | null> {
-		const moment = (window as any).moment;
+	async getDailyNoteFile(workDate: moment.Moment): Promise<TFile | null> {
+		const moment = (window as any).moment; //qqqqq
+		const { dailyNoteFolder, dailyNoteFormat } = this.settings;
 		let dailyNotesFolder: string;
 		let today: string;
-	
-		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
 
+		dailyNotesFolder = dailyNoteFolder; 
+		today = workDate.format(dailyNoteFormat);
+
+		//Use settings, unless core plugin is enabled 
+		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
 		if (dailyNotesPlugin?.enabled) {
 			const dailySettings = dailyNotesPlugin.instance.options;
 			dailyNotesFolder = dailySettings.folder;
-			today = moment().format(dailySettings.format);		
-		} else {
-			// This could be configurable - not needed for now
-			new Notice("Daily Notes plugin is not enabled. Using hardcoded defaults");
-			dailyNotesFolder = 'Daily Notes'; 
-			today = moment().format('YYYY-MM-DD');
-		}
+			today =  workDate.format(dailySettings.format);		
+		} 
 		
 		// Check if file exists
 		const files = this.app.vault.getFiles();
@@ -129,7 +132,8 @@ export default class PomodoroPlugin extends Plugin {
 	
 	// Update the pomodoro counter in the frontmatter of daily note
 	async updatePomodoroCounter() {
-		const dailyNoteFile = await this.getDailyNoteFile();
+		const today = window.moment();
+		const dailyNoteFile = await this.getDailyNoteFile(today);
 
 		if (!dailyNoteFile) return;
 		
@@ -190,6 +194,17 @@ export default class PomodoroPlugin extends Plugin {
 				new RemainingTimeModal(this.app, this).open();
 			} else {
 				new Notice('No active pomodoro. Start one from the command palette.');
+			}
+		});
+
+
+		// Add DEBUG command
+		this.addCommand({
+			id: 'test-pomodoro',
+			name: 'test Pomodoro',
+			callback: () => {
+				console.log("So many 🍅")
+				this.updatePomodoroCounter();
 			}
 		});
 
@@ -336,6 +351,40 @@ class PomodoroSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.createEl('h2', {text: '🍅 Pomodoro Timer Settings'});
+
+		containerEl.createEl('h3', {text: 'Daily Note Settings'});
+
+		//Use settings, unless core plugin is enabled 
+		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
+		if (dailyNotesPlugin?.enabled) {
+			containerEl.createEl('p', {text: 'Location and format are taken from the core daily note plugin'});
+		} else {	
+			// Daily Note folder setting
+			new Setting(containerEl)
+			.setName('Daily notes folder')
+			.setDesc('Folder where your daily notes are stored')
+			.addText(text => text
+				.setPlaceholder('/')
+				.setValue(this.plugin.settings.dailyNoteFolder)
+				.onChange(async (value) => {
+					this.plugin.settings.dailyNoteFolder = value;
+					await this.plugin.saveSettings();
+				}));
+				
+				// Daily Note format setting
+				new Setting(containerEl)
+				.setName('Daily note format')
+				.setDesc('Format for daily note filenames (uses moment.js format)')
+				.addText(text => text
+					.setPlaceholder('YYYY-MM-DD')
+					.setValue(this.plugin.settings.dailyNoteFormat)
+					.onChange(async (value) => {
+						this.plugin.settings.dailyNoteFormat = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		containerEl.createEl('h3', {text: '🍅 Pomodoro Settings'});		
 
 		new Setting(containerEl)
 			.setName('Pomodoro Length')
