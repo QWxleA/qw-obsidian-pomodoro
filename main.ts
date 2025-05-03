@@ -1,4 +1,5 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, addIcon } from 'obsidian';
+import { getDailyNoteFile } from './daily-note-utils';
 
 // Define the plugin settings interface
 interface PomodoroPluginSettings {
@@ -88,52 +89,16 @@ export default class PomodoroPlugin extends Plugin {
 	statusBarItem: HTMLElement;
 	pomodoroCount: number = 0;
 	
-	// Get today's daily note file or create it if it doesn't exist
-	async getDailyNoteFile(workDate: moment.Moment): Promise<TFile | null> {
-		const moment = (window as any).moment; //qqqqq
-		const { dailyNoteFolder, dailyNoteFormat } = this.settings;
-		let dailyNotesFolder: string;
-		let today: string;
-
-		dailyNotesFolder = dailyNoteFolder; 
-		today = workDate.format(dailyNoteFormat);
-
-		//Use settings, unless core plugin is enabled 
-		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
-		if (dailyNotesPlugin?.enabled) {
-			const dailySettings = dailyNotesPlugin.instance.options;
-			dailyNotesFolder = dailySettings.folder;
-			today =  workDate.format(dailySettings.format);		
-		} 
-		
-		// Check if file exists
-		const files = this.app.vault.getFiles();
-		const dailyNoteFile = files.find(file => {
-			return file.path === `${dailyNotesFolder}/${today}.md` || file.path === `${today}.md`;
-		});
-		
-		if (dailyNoteFile) {
-			return dailyNoteFile;
-		}
-		
-		// File doesn't exist, try to create it
-		try {
-			return await this.app.vault.create(`${dailyNotesFolder}/${today}.md`, '---\n' + this.settings.pomodoroCounterName + ': 0\n---\n\n');
-		} catch (e) {
-			// If folder doesn't exist, try to create in root
-			try {
-				return await this.app.vault.create(`${today}.md`, '---\n' + this.settings.pomodoroCounterName + ': 0\n---\n\n');
-			} catch (err) {
-				new Notice('Could not create daily note file');
-				return null;
-			}
-		}
-	}
-	
 	// Update the pomodoro counter in the frontmatter of daily note
 	async updatePomodoroCounter() {
 		const today = window.moment();
-		const dailyNoteFile = await this.getDailyNoteFile(today);
+		// Use the imported utility function instead of the class method
+		const dailyNoteFile = await getDailyNoteFile(
+			this.app,
+			this.settings,
+			today,
+			`---\n${this.settings.pomodoroCounterName}: 0\n---\n\n`
+		);
 
 		if (!dailyNoteFile) return;
 		
