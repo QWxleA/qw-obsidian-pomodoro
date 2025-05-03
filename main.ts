@@ -87,13 +87,26 @@ export default class PomodoroPlugin extends Plugin {
 	// Get today's daily note file or create it if it doesn't exist
 	async getDailyNoteFile(): Promise<TFile | null> {
 		const moment = (window as any).moment;
+		let dailyNotesFolder: string;
+		let today: string;
+
 		if (!moment) {
 			new Notice('Moment.js not found. Daily note integration unavailable.');
 			return null;
 		}
 		
-		const today = moment().format('YYYY-MM-DD');
-		const dailyNotesFolder = 'Daily Notes'; // You might want to make this configurable
+		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
+
+		if (dailyNotesPlugin?.enabled) {
+			const dailySettings = dailyNotesPlugin.instance.options;
+			dailyNotesFolder = dailySettings.folder;
+			today = moment().format(dailySettings.format);		
+		} else {
+			// This could be configurable - not needed for now
+			new Notice("Daily Notes plugin is not enabled. Using hardcoded defaults");
+			dailyNotesFolder = 'Daily Notes'; 
+			today = moment().format('YYYY-MM-DD');
+		}
 		
 		// Check if file exists
 		const files = this.app.vault.getFiles();
@@ -122,18 +135,19 @@ export default class PomodoroPlugin extends Plugin {
 	// Update the pomodoro counter in the frontmatter of daily note
 	async updatePomodoroCounter() {
 		const dailyNoteFile = await this.getDailyNoteFile();
+
 		if (!dailyNoteFile) return;
 		
 		try {
 			// Read the file content
 			const content = await this.app.vault.read(dailyNoteFile);
-			
 			// Find the frontmatter
 			const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---/;
 			const match = content.match(frontmatterRegex);
-			
+
 			if (match && match[1]) {
 				const frontmatter = match[1];
+				console.table(frontmatter)
 				const pomodoroRegex = new RegExp(`(${this.settings.pomodoroCounterName}\\s*:\\s*)(\\d+)`, 'i');
 				const pomodoroMatch = frontmatter.match(pomodoroRegex);
 				
@@ -208,6 +222,7 @@ export default class PomodoroPlugin extends Plugin {
 
 	onunload() {
 		this.stopTimer();
+		console.log("🍅 splattered unceremoniously...")
 	}
 
 	async loadSettings() {
