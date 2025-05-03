@@ -11,6 +11,13 @@ interface PomodoroPluginSettings {
 	dailyNoteFormat: string;
 }
 
+interface DailyNotesOptions {
+    autorun?: boolean; // Open daily note on startup
+    folder?: string; // New file location
+    format?: string; // Date format
+    template?: string; // Template file location
+}
+
 // Default settings
 const DEFAULT_SETTINGS: PomodoroPluginSettings = {
 	pomodoroLength: 25, // 25 minutes
@@ -319,9 +326,10 @@ class PomodoroSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h3', {text: 'Daily Note Settings'});
 
-		//Use settings, unless core plugin is enabled 
-		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
-		if (dailyNotesPlugin?.enabled) {
+		//Use settings, unless core plugin is enabled - error is weird:
+		// @ts-ignore: Property 'internalPlugins' does not exist on type 'App'
+		const DailyNotesOptions = this.app.internalPlugins.getPluginById("daily-notes");
+		if (DailyNotesOptions?.enabled) {
 			containerEl.createEl('p', {text: 'Location and format are taken from the core daily note plugin'});
 		} else {	
 			// Daily Note folder setting
