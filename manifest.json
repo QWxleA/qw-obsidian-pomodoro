@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "Simple Pomodoro timer with daily notes integration",
-	"author": "Your Name",
+	"author": "Alex Poslavsky",
 	"authorUrl": "https://github.com/qwxlea",
 	"isDesktopOnly": false
 }

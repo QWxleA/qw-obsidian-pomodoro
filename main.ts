@@ -89,12 +89,7 @@ export default class PomodoroPlugin extends Plugin {
 		const moment = (window as any).moment;
 		let dailyNotesFolder: string;
 		let today: string;
-
-		if (!moment) {
-			new Notice('Moment.js not found. Daily note integration unavailable.');
-			return null;
-		}
-		
+	
 		const dailyNotesPlugin = app.internalPlugins.getPluginById("daily-notes");
 
 		if (dailyNotesPlugin?.enabled) {
