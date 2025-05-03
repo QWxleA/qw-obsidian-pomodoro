@@ -40,9 +40,13 @@ class RemainingTimeModal extends Modal {
 		const title = this.plugin.timerStatus === TimerStatus.BREAK ? 'Break Time' : 'Pomodoro';
 		contentEl.createEl('h2', {text: title});
 		
-		// Display time remaining
+		// Display time remaining - doesn't update automatically, too much worrk to implement
+		// contentEl.createEl('p', {
+		// 	text: `Remaining time: ${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
+		// });
+		
 		contentEl.createEl('p', {
-			text: `Remaining time: ${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
+			text: "Restarting pomodoros is kind of useless, but go for it..."
 		});
 		
 		// Create buttons container
@@ -319,7 +323,7 @@ class PomodoroSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Pomodoro Timer Settings'});
+		containerEl.createEl('h2', {text: '🍅 Pomodoro Timer Settings'});
 
 		new Setting(containerEl)
 			.setName('Pomodoro Length')
